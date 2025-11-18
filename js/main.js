@@ -1,17 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const txtName   = document.getElementById("Name");
+  const txtName = document.getElementById("Name");
   const txtNumber = document.getElementById("Number");
   const btnAgregar = document.getElementById("btnAgregar");
-
+  const btnClear = document.getElementById("btnClear");
   const alertValidacionesTexto = document.getElementById("alertValidacionesTexto");
-  const alertValidaciones      = document.getElementById("alertValidaciones");
-
+  const alertValidaciones = document.getElementById("alertValidaciones");
   const contadorProductos = document.getElementById("contadorProductos");
-  const productosTotal    = document.getElementById("productosTotal");
-  const precioTotal       = document.getElementById("precioTotal");
-
+  const productosTotal = document.getElementById("productosTotal");
+  const precioTotal = document.getElementById("precioTotal");
   const tablaListaCompras = document.getElementById("tablaListaCompras");
-  const cuerpoTabla       = tablaListaCompras.getElementsByTagName("tbody").item(0);
+  const cuerpoTabla = tablaListaCompras.getElementsByTagName("tbody").item(0);
+
+  let cont = 0;
+  let totalEnProductos = 0;
+  let costoTotal = 0;
 
   // ====== ESTADO ======
   let listaCompras = JSON.parse(localStorage.getItem("listaCompras")) || [];
@@ -39,10 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ====== GUARDAR EN LOCALSTORAGE (lista + resumen) ======
   function guardarEnLocalStorage() {
-    // guardar lista de productos
     localStorage.setItem("listaCompras", JSON.stringify(listaCompras));
 
-    // construir resumen
     const cont = listaCompras.length;
     const totalEnProductos = listaCompras.reduce((acc, p) => acc + p.cantidad, 0);
     const costoTotal = listaCompras.reduce((acc, p) => acc + p.subtotal, 0);
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const costoTotal = listaCompras.reduce((acc, p) => acc + p.subtotal, 0);
 
     contadorProductos.innerText = cont;
-    productosTotal.innerText    = totalEnProductos;
+    productosTotal.innerText = totalEnProductos;
     precioTotal.innerText = new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN"
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const cantidad = Number(txtNumber.value.trim());
     const precioUnit = getPrecio();
-    const subtotal   = cantidad * precioUnit;
+    const subtotal = cantidad * precioUnit;
 
     const producto = {
       nombre: txtName.value.trim(),
@@ -125,8 +125,37 @@ document.addEventListener("DOMContentLoaded", () => {
     txtName.focus();
   });
 
+  // ======  BOTÓN LIMPIAR TODO ======
+  btnClear.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    // 1. Limpiar campos
+    txtName.value = "";
+    txtNumber.value = "";
+
+    // 2. Limpiar alerts
+    limpiarError();
+
+    // 3. Limpiar bordes
+    txtName.style.border = "";
+    txtNumber.style.border = "";
+
+    // 4. Vaciar la lista en memoria
+    listaCompras = [];
+
+    // 5. Borrar de localStorage
+    localStorage.removeItem("listaCompras");
+    localStorage.removeItem("resumen");
+
+    // 6. Limpiar tabla y resumen usando las funciones
+    renderTabla();
+    actualizarResumen(); // con lista vacía pone todo en 0
+
+    // 7. Volver a enfocar en el nombre
+    txtName.focus();
+  });
+
   // ====== INICIALIZAR PÁGINA ======
   renderTabla();
   actualizarResumen();
-
 });
